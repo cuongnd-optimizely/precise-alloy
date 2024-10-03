@@ -22,7 +22,7 @@ jobs:
   build:
     timeout-minutes: 5
     # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -32,26 +32,39 @@ jobs:
           submodules: recursive
           ref: fe-develop
 
-      - name: Bun Install 🛎️
-        uses: oven-sh/setup-bun@v1
-
+      - name: install nodejs
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          
+      - name: install bun
+        run:  npm install -g bun
+        
       - name: Bun Build 🛎️
         run: |
-          bun install
-          bun run eshn
+          npm install
+          npm run eshn
+        working-directory: PreciseAlloy.Frontend
+        
+      - name: Install Azure SWA CLI 🛎️
+        run: npm install @azure/static-web-apps-cli --no-save
         working-directory: PreciseAlloy.Frontend
 
       - name: Deploy to Azure Static Web App 🚀
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }} # Used for Github integrations (i.e. PR comments)
-          action: upload
-          ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
-          # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
-          app_location: PreciseAlloy.Frontend/dist/static # App source code path
-          api_location: '' #api # Api source code path - optional
-          output_location: '' # Built app content directory - optional
-          skip_app_build: true
-          skip_api_build: true
-          ###### End of Repository/Build Configurations ######
+        # uses: Azure/static-web-apps-deploy@v1
+        # with:
+        #   azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+        #   repo_token: ${{ secrets.GITHUB_TOKEN }} # Used for Github integrations (i.e. PR comments)
+        #   action: upload
+        #   ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
+        #   # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
+        #   app_location: PreciseAlloy.Frontend/dist/static # App source code path
+        #   api_location: '' #api # Api source code path - optional
+        #   output_location: '' # Built app content directory - optional
+        #   skip_app_build: true
+        #   skip_api_build: true
+        #   ###### End of Repository/Build Configurations ######
+        env:
+          TOKEN: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+        run: npx swa deploy ./dist/static --deployment-token "%TOKEN%" --env production
+        working-directory: PreciseAlloy.Frontend
